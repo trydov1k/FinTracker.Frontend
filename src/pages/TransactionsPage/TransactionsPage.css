@@ -216,7 +216,38 @@
 
 .transactions__row-menu:disabled {
   opacity: 0.35;
-  cursor: default;
+  cursor: not-allowed;
+}
+
+.transactions__row-menu--open {
+  background: var(--color-primary-pale);
+  color: var(--color-text);
+}
+
+.transactions__row-dropdown {
+  position: fixed;
+  z-index: 150;
+  min-width: 220px;
+  padding: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.transactions__row-dropdown-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--color-border-light);
+}
+
+.transactions__row-dropdown .transactions__more-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.transactions__row-dropdown .transactions__more-item:disabled:hover {
+  background: transparent;
 }
 
 .transactions__search {

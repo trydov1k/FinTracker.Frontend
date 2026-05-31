@@ -8,6 +8,7 @@ import type {
   TagDto,
   TransactionDto,
   TransactionFilter,
+  UpdateTransactionDto,
 } from './types';
 
 function buildQueryString(filter: TransactionFilter): string {
@@ -75,6 +76,40 @@ export async function bulkUpdateTransactions(dto: BulkUpdateDto): Promise<void> 
     const body = await response.json().catch(() => null) as { error?: string } | null;
     throw new Error(body?.error ?? `HTTP ${response.status}`);
   }
+}
+
+export async function updateTransaction(
+  id: string,
+  dto: UpdateTransactionDto,
+  refs?: {
+    categoryId?: string;
+    scopeId?: string;
+    tagIds?: string[];
+    categories: CategoryDto[];
+    scopes: ScopeDto[];
+    tags: TagDto[];
+  },
+): Promise<TransactionDto> {
+  const raw = await apiFetch<unknown>(`/api/transactions/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dto),
+  });
+
+  const transaction = normalizeTransactionDto(raw);
+
+  if (refs?.categoryId) {
+    return enrichTransactionDto(transaction, {
+      categoryId: refs.categoryId,
+      scopeId: refs.scopeId,
+      tagIds: refs.tagIds ?? transaction.tags.map((t) => t.id),
+      categories: refs.categories,
+      scopes: refs.scopes,
+      tags: refs.tags,
+    });
+  }
+
+  return transaction;
 }
 
 export async function createTransaction(

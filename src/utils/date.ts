@@ -19,6 +19,11 @@ export function todayDateInputValue(): string {
   return toDateInputValue(new Date());
 }
 
+export function utcIsoToDateInputValue(iso: string): string {
+  const d = new Date(iso);
+  return toDateInputValue(new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
+
 export function getCurrentMonthRange(): { from: string; to: string } {
   const now = new Date();
   const from = new Date(now.getFullYear(), now.getMonth(), 1);

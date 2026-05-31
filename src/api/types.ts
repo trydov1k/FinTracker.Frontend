@@ -75,6 +75,18 @@ export interface CreateTransactionDto {
   tagIds: string[];
 }
 
+export interface UpdateTransactionDto {
+  amount?: number;
+  currency?: string;
+  dateUtc?: string;
+  description?: string;
+  comment?: string;
+  categoryId?: string;
+  scopeId?: string;
+  deleteScope?: boolean;
+  tagIds?: string[];
+}
+
 export interface TransactionDto {
   id: string;
   amount: number;

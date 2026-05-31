@@ -15,6 +15,7 @@ import { currencySymbol, formatAmount, formatDateLong } from '../../utils/format
 import { filtersToApiQuery, countActiveFilters, createDefaultFilters, type TransactionFiltersState } from '../../utils/transactionFilters';
 import { TransactionsFiltersPanel } from './TransactionsFiltersPanel';
 import { ReferenceSettingsModal } from './ReferenceSettingsModal';
+import { TransactionRowMenu } from './TransactionRowMenu';
 import './TransactionsPage.css';
 
 type BulkPanel = 'category' | 'scope' | 'comment' | 'addTags' | 'replaceTags' | null;
@@ -718,19 +719,16 @@ export function TransactionsPage() {
                       )}
                     </td>
                     <td className="transactions__td-comment">{tx.comment ?? ''}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="transactions__row-menu"
-                        aria-label="Действия"
-                        disabled
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <circle cx="8" cy="3" r="1.2" fill="currentColor" />
-                          <circle cx="8" cy="8" r="1.2" fill="currentColor" />
-                          <circle cx="8" cy="13" r="1.2" fill="currentColor" />
-                        </svg>
-                      </button>
+                    <td className="transactions__td-actions">
+                      <TransactionRowMenu
+                        transaction={tx}
+                        categories={categories}
+                        scopes={scopes}
+                        tags={tags}
+                        disabled={actionLoading}
+                        onRefresh={refresh}
+                        onError={setError}
+                      />
                     </td>
                   </tr>
                 ))
