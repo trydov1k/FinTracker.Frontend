@@ -1,0 +1,37 @@
+.stub {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--header-height) - 120px);
+  padding: 48px 0;
+}
+
+.stub__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 64px 80px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.stub__emoji {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.stub__title {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.stub__message {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+}

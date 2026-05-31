@@ -1,0 +1,33 @@
+.tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tag--blue {
+  background: var(--color-tag-blue);
+  color: var(--color-tag-blue-text);
+}
+
+.tag--green {
+  background: var(--color-tag-green);
+  color: var(--color-tag-green-text);
+}
+
+.tag--purple {
+  background: var(--color-tag-purple);
+  color: var(--color-tag-purple-text);
+}
+
+.tag--orange {
+  background: var(--color-tag-orange);
+  color: var(--color-tag-orange-text);
+}
+
+.tag--teal {
+  background: var(--color-tag-teal);
+  color: var(--color-tag-teal-text);
+}
