@@ -1,0 +1,20 @@
+name: Sync to monorepo
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  notify-monorepo:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Trigger monorepo sync
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.MONOREPO_SYNC_TOKEN }}
+          repository: Code-Brew-Git-Hub/FinTracker
+          event-type: sync-frontend
