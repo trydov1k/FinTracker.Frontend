@@ -88,3 +88,30 @@ export interface TransactionDto {
   scope?: ScopeDto;
   tags: TagDto[];
 }
+
+export type TransactionTypeFilter = '' | 'Expense' | 'Income';
+
+export interface TransactionFilter {
+  dateFrom?: string;
+  dateTo?: string;
+  amountMin?: number;
+  amountMax?: number;
+  categoryId?: string;
+  type?: TransactionTypeFilter;
+  tagIds?: string[];
+  scopeId?: string;
+  search?: string;
+  excludeScopes?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface BulkUpdateDto {
+  transactionIds: string[];
+  categoryId?: string;
+  scopeId?: string;
+  deleteScope?: boolean;
+  comment?: string;
+  addTagIds?: string[];
+  replaceTagIds?: string[];
+}
