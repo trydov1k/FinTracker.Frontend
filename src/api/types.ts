@@ -48,3 +48,43 @@ export interface MergedImportPreview {
   preview: TransactionPreviewDto[];
   fileResults: FileImportResultDto[];
 }
+
+export interface CategoryDto {
+  id: string;
+  name: string;
+}
+
+export interface TagDto {
+  id: string;
+  name: string;
+}
+
+export interface ScopeDto {
+  id: string;
+  name: string;
+}
+
+export interface CreateTransactionDto {
+  amount: number;
+  currency: string;
+  dateUtc: string;
+  description?: string;
+  comment?: string;
+  categoryId: string;
+  scopeId?: string;
+  tagIds: string[];
+}
+
+export interface TransactionDto {
+  id: string;
+  amount: number;
+  currency: string;
+  dateUtc: string;
+  description?: string;
+  comment?: string;
+  type: string;
+  isDeleted: boolean;
+  category: CategoryDto;
+  scope?: ScopeDto;
+  tags: TagDto[];
+}

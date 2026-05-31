@@ -1,10 +1,11 @@
 import { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { mergeImportResults, uploadImportFiles } from '../../api/import';
-import type { MergedImportPreview } from '../../api/types';
+import type { MergedImportPreview, TransactionDto } from '../../api/types';
 import { Tag } from '../../components/Tag/Tag';
 import { categoryTagVariant } from '../../utils/categoryTag';
 import { formatAmount, formatDatePeriod, formatDateShort } from '../../utils/format';
+import { ManualTransactionForm } from './ManualTransactionForm';
 import './UploadPage.css';
 
 type UploadTab = 'import' | 'manual';
@@ -12,10 +13,25 @@ type UploadTab = 'import' | 'manual';
 export function UploadPage() {
   const [activeTab, setActiveTab] = useState<UploadTab>('import');
   const [preview, setPreview] = useState<MergedImportPreview | null>(null);
+  const [createdTransaction, setCreatedTransaction] = useState<TransactionDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleManualError = useCallback((message: string) => {
+    setError(message || null);
+  }, []);
+
+  const handleManualSuccess = useCallback((transaction: TransactionDto) => {
+    setCreatedTransaction(transaction);
+    setError(null);
+  }, []);
+
+  const switchTab = (tab: UploadTab) => {
+    setActiveTab(tab);
+    setError(null);
+  };
 
   const handleFiles = useCallback(async (fileList: FileList | File[]) => {
     const files = Array.from(fileList);
@@ -70,8 +86,13 @@ export function UploadPage() {
     }
   };
 
-  const handleCancel = () => {
+  const handleCancelImport = () => {
     setPreview(null);
+    setError(null);
+  };
+
+  const handleClearCreated = () => {
+    setCreatedTransaction(null);
     setError(null);
   };
 
@@ -100,7 +121,7 @@ export function UploadPage() {
             role="tab"
             aria-selected={activeTab === 'import'}
             className={`upload__tab${activeTab === 'import' ? ' upload__tab--active' : ''}`}
-            onClick={() => setActiveTab('import')}
+            onClick={() => switchTab('import')}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path
@@ -118,7 +139,7 @@ export function UploadPage() {
             role="tab"
             aria-selected={activeTab === 'manual'}
             className={`upload__tab${activeTab === 'manual' ? ' upload__tab--active' : ''}`}
-            onClick={() => setActiveTab('manual')}
+            onClick={() => switchTab('manual')}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path
@@ -175,10 +196,10 @@ export function UploadPage() {
           </div>
         ) : (
           <div className="upload__dropzone-card">
-            <div className="upload__manual-placeholder">
-              <p>Форма ручного ввода транзакции</p>
-              <p className="upload__manual-hint">Будет реализована позже</p>
-            </div>
+            <ManualTransactionForm
+              onSuccess={handleManualSuccess}
+              onError={handleManualError}
+            />
           </div>
         )}
 
@@ -193,132 +214,215 @@ export function UploadPage() {
 
       <div className="upload__right">
         <div className="upload__preview-card">
-          <div className="upload__preview-header">
-            <h2 className="upload__preview-title">Предпросмотр импорта</h2>
-            <p className="upload__preview-subtitle">
-              Сопоставление колонок, проверка качества и результат до записи в систему
-            </p>
-          </div>
-
-          {!preview ? (
-            <div className="upload__preview-empty">
-              <p>Выберите файлы для импорта, чтобы увидеть предпросмотр</p>
-            </div>
-          ) : (
+          {activeTab === 'import' ? (
             <>
-              <div className="upload__stats">
-                <div className="upload__stat">
-                  <span className="upload__stat-icon" aria-hidden="true">📅</span>
-                  <div className="upload__stat-body">
-                    <span className="upload__stat-label">Период</span>
-                    <span className="upload__stat-value">
-                      {preview.period
-                        ? formatDatePeriod(preview.period.from, preview.period.to)
-                        : '—'}
-                    </span>
-                  </div>
-                </div>
-                <div className="upload__stat">
-                  <span className="upload__stat-icon" aria-hidden="true">📋</span>
-                  <div className="upload__stat-body">
-                    <span className="upload__stat-label">Транзакции</span>
-                    <span className="upload__stat-value">{preview.imported}</span>
-                  </div>
-                </div>
-                <div className="upload__stat">
-                  <span className="upload__stat-icon" aria-hidden="true">↑</span>
-                  <div className="upload__stat-body">
-                    <span className="upload__stat-label">Доходы</span>
-                    <span className="upload__stat-value upload__stat-value--success">
-                      {preview.incomeCount}
-                    </span>
-                  </div>
-                </div>
-                <div className="upload__stat">
-                  <span className="upload__stat-icon" aria-hidden="true">↓</span>
-                  <div className="upload__stat-body">
-                    <span className="upload__stat-label">Расходы</span>
-                    <span className="upload__stat-value upload__stat-value--warning">
-                      {preview.expenseCount}
-                    </span>
-                  </div>
-                </div>
+              <div className="upload__preview-header">
+                <h2 className="upload__preview-title">Предпросмотр импорта</h2>
+                <p className="upload__preview-subtitle">
+                  Сопоставление колонок, проверка качества и результат до записи в систему
+                </p>
               </div>
 
-              {preview.categories.length > 0 && (
-                <div className="upload__categories">
-                  <span className="upload__categories-label">Найденные категории</span>
-                  <div className="upload__categories-tags">
-                    {preview.categories.map((cat, i) => (
-                      <Tag key={cat.name} variant={categoryTagVariant(cat.name, i)}>
-                        {cat.name} x {cat.count}
-                      </Tag>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {failedFiles.length > 0 && (
-                <div className="upload__file-errors">
-                  {failedFiles.map((f) => (
-                    <p key={f.fileName}>
-                      <strong>{f.fileName}:</strong> {f.error}
-                    </p>
-                  ))}
-                </div>
-              )}
-
-              {preview.preview.length > 0 ? (
-                <div className="upload__table-wrap">
-                  <table className="upload__table">
-                    <thead>
-                      <tr>
-                        <th>Дата</th>
-                        <th>Описание</th>
-                        <th>Сумма</th>
-                        <th>Категория</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {preview.preview.map((tx, i) => (
-                        <tr key={`${tx.dateUtc}-${tx.description}-${i}`}>
-                          <td>{formatDateShort(tx.dateUtc)}</td>
-                          <td>{tx.description ?? '—'}</td>
-                          <td>
-                            <span
-                              className={`upload__amount upload__amount--${tx.amount >= 0 ? 'income' : 'expense'}`}
-                            >
-                              {formatAmount(tx.amount)}
-                            </span>
-                          </td>
-                          <td>
-                            <Tag variant={categoryTagVariant(tx.category, i)}>
-                              {tx.category}
-                            </Tag>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              {!preview ? (
+                <div className="upload__preview-empty">
+                  <p>Выберите файлы для импорта, чтобы увидеть предпросмотр</p>
                 </div>
               ) : (
-                <p className="upload__preview-empty upload__preview-empty--inline">
-                  Транзакции импортированы, но предпросмотр пуст
-                </p>
-              )}
+                <>
+                  <div className="upload__stats">
+                    <div className="upload__stat">
+                      <span className="upload__stat-icon" aria-hidden="true">📅</span>
+                      <div className="upload__stat-body">
+                        <span className="upload__stat-label">Период</span>
+                        <span className="upload__stat-value">
+                          {preview.period
+                            ? formatDatePeriod(preview.period.from, preview.period.to)
+                            : '—'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="upload__stat">
+                      <span className="upload__stat-icon" aria-hidden="true">📋</span>
+                      <div className="upload__stat-body">
+                        <span className="upload__stat-label">Транзакции</span>
+                        <span className="upload__stat-value">{preview.imported}</span>
+                      </div>
+                    </div>
+                    <div className="upload__stat">
+                      <span className="upload__stat-icon" aria-hidden="true">↑</span>
+                      <div className="upload__stat-body">
+                        <span className="upload__stat-label">Доходы</span>
+                        <span className="upload__stat-value upload__stat-value--success">
+                          {preview.incomeCount}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="upload__stat">
+                      <span className="upload__stat-icon" aria-hidden="true">↓</span>
+                      <div className="upload__stat-body">
+                        <span className="upload__stat-label">Расходы</span>
+                        <span className="upload__stat-value upload__stat-value--warning">
+                          {preview.expenseCount}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="upload__preview-actions">
-                <button
-                  type="button"
-                  className="upload__btn upload__btn--secondary"
-                  onClick={handleCancel}
-                >
-                  Отмена
-                </button>
-                <Link to="/transactions" className="upload__btn upload__btn--primary">
-                  К транзакциям
-                </Link>
+                  {preview.categories.length > 0 && (
+                    <div className="upload__categories">
+                      <span className="upload__categories-label">Найденные категории</span>
+                      <div className="upload__categories-tags">
+                        {preview.categories.map((cat, i) => (
+                          <Tag key={cat.name} variant={categoryTagVariant(cat.name, i)}>
+                            {cat.name} x {cat.count}
+                          </Tag>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {failedFiles.length > 0 && (
+                    <div className="upload__file-errors">
+                      {failedFiles.map((f) => (
+                        <p key={f.fileName}>
+                          <strong>{f.fileName}:</strong> {f.error}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+
+                  {preview.preview.length > 0 ? (
+                    <div className="upload__table-wrap">
+                      <table className="upload__table">
+                        <thead>
+                          <tr>
+                            <th>Дата</th>
+                            <th>Описание</th>
+                            <th>Сумма</th>
+                            <th>Категория</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {preview.preview.map((tx, i) => (
+                            <tr key={`${tx.dateUtc}-${tx.description}-${i}`}>
+                              <td>{formatDateShort(tx.dateUtc)}</td>
+                              <td>{tx.description ?? '—'}</td>
+                              <td>
+                                <span
+                                  className={`upload__amount upload__amount--${tx.amount >= 0 ? 'income' : 'expense'}`}
+                                >
+                                  {formatAmount(tx.amount)}
+                                </span>
+                              </td>
+                              <td>
+                                <Tag variant={categoryTagVariant(tx.category, i)}>
+                                  {tx.category}
+                                </Tag>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="upload__preview-empty upload__preview-empty--inline">
+                      Транзакции импортированы, но предпросмотр пуст
+                    </p>
+                  )}
+
+                  <div className="upload__preview-actions">
+                    <button
+                      type="button"
+                      className="upload__btn upload__btn--secondary"
+                      onClick={handleCancelImport}
+                    >
+                      Отмена
+                    </button>
+                    <Link to="/transactions" className="upload__btn upload__btn--primary">
+                      К транзакциям
+                    </Link>
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="upload__preview-header">
+                <h2 className="upload__preview-title">Созданная транзакция</h2>
+                <p className="upload__preview-subtitle">
+                  Проверьте данные перед переходом к списку транзакций
+                </p>
               </div>
+
+              {!createdTransaction ? (
+                <div className="upload__preview-empty">
+                  <p>Заполните форму слева и нажмите «Добавить транзакцию»</p>
+                </div>
+              ) : (
+                <>
+                  <div className="upload__manual-result">
+                    <div className="upload__manual-result-row">
+                      <span className="upload__manual-result-label">Дата</span>
+                      <span>{formatDateShort(createdTransaction.dateUtc)}</span>
+                    </div>
+                    <div className="upload__manual-result-row">
+                      <span className="upload__manual-result-label">Описание</span>
+                      <span>{createdTransaction.description ?? '—'}</span>
+                    </div>
+                    <div className="upload__manual-result-row">
+                      <span className="upload__manual-result-label">Сумма</span>
+                      <span
+                        className={`upload__amount upload__amount--${createdTransaction.amount >= 0 ? 'income' : 'expense'}`}
+                      >
+                        {formatAmount(createdTransaction.amount, createdTransaction.currency === 'RUB' ? '₽' : createdTransaction.currency)}
+                      </span>
+                    </div>
+                    <div className="upload__manual-result-row">
+                      <span className="upload__manual-result-label">Категория</span>
+                      <Tag variant={categoryTagVariant(createdTransaction.category?.name ?? '')}>
+                        {createdTransaction.category?.name ?? '—'}
+                      </Tag>
+                    </div>
+                    {createdTransaction.scope?.name && (
+                      <div className="upload__manual-result-row">
+                        <span className="upload__manual-result-label">Группа</span>
+                        <Tag variant="purple">{createdTransaction.scope.name}</Tag>
+                      </div>
+                    )}
+                    {(createdTransaction.tags?.length ?? 0) > 0 && (
+                      <div className="upload__manual-result-row">
+                        <span className="upload__manual-result-label">Теги</span>
+                        <div className="upload__manual-result-tags">
+                          {createdTransaction.tags?.map((tag, i) => (
+                            <Tag key={tag.id} variant={categoryTagVariant(tag.name, i)}>
+                              {tag.name}
+                            </Tag>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {createdTransaction.comment && (
+                      <div className="upload__manual-result-row">
+                        <span className="upload__manual-result-label">Комментарий</span>
+                        <span>{createdTransaction.comment}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="upload__preview-actions">
+                    <button
+                      type="button"
+                      className="upload__btn upload__btn--secondary"
+                      onClick={handleClearCreated}
+                    >
+                      Добавить ещё
+                    </button>
+                    <Link to="/transactions" className="upload__btn upload__btn--primary">
+                      К транзакциям
+                    </Link>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
