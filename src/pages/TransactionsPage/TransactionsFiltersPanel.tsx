@@ -1,15 +1,24 @@
 import type { CategoryDto, ScopeDto, TagDto, TransactionTypeFilter } from '../../api/types';
+import type { AnalyticsFiltersState } from '../../utils/analyticsFilters';
 import type { TransactionFiltersState } from '../../utils/transactionFilters';
 import './TransactionsFiltersPanel.css';
 
+type FiltersDraft = TransactionFiltersState | AnalyticsFiltersState;
+
+function isAnalyticsDraft(draft: FiltersDraft): draft is AnalyticsFiltersState {
+  return 'excludeTransfers' in draft;
+}
+
 interface TransactionsFiltersPanelProps {
-  draft: TransactionFiltersState;
+  draft: FiltersDraft;
   categories: CategoryDto[];
   scopes: ScopeDto[];
   tags: TagDto[];
-  onChange: (draft: TransactionFiltersState) => void;
+  onChange: (draft: FiltersDraft) => void;
   onApply: () => void;
   onReset: () => void;
+  showExcludeScopes?: boolean;
+  showAnalyticsOptions?: boolean;
 }
 
 export function TransactionsFiltersPanel({
@@ -20,8 +29,10 @@ export function TransactionsFiltersPanel({
   onChange,
   onApply,
   onReset,
+  showExcludeScopes = true,
+  showAnalyticsOptions = false,
 }: TransactionsFiltersPanelProps) {
-  const patch = (partial: Partial<TransactionFiltersState>) => {
+  const patch = (partial: Partial<FiltersDraft>) => {
     onChange({ ...draft, ...partial });
   };
 
@@ -137,19 +148,43 @@ export function TransactionsFiltersPanel({
           </select>
         </label>
 
-        <label className="tx-filters__field tx-filters__field--check">
-          <input
-            type="checkbox"
-            checked={draft.excludeScopes}
-            onChange={(e) =>
-              patch({
-                excludeScopes: e.target.checked,
-                scopeId: e.target.checked ? '' : draft.scopeId,
-              })
-            }
-          />
-          <span>Только без группы</span>
-        </label>
+        {showExcludeScopes && (
+          <label className="tx-filters__field tx-filters__field--check">
+            <input
+              type="checkbox"
+              checked={draft.excludeScopes}
+              onChange={(e) =>
+                patch({
+                  excludeScopes: e.target.checked,
+                  scopeId: e.target.checked ? '' : draft.scopeId,
+                })
+              }
+            />
+            <span>Только без группы</span>
+          </label>
+        )}
+
+        {showAnalyticsOptions && isAnalyticsDraft(draft) && (
+          <>
+            <label className="tx-filters__field tx-filters__field--check">
+              <input
+                type="checkbox"
+                checked={draft.excludeTransfers}
+                onChange={(e) => patch({ excludeTransfers: e.target.checked })}
+              />
+              <span>Исключить переводы</span>
+            </label>
+
+            <label className="tx-filters__field tx-filters__field--check">
+              <input
+                type="checkbox"
+                checked={draft.excludeCompensations}
+                onChange={(e) => patch({ excludeCompensations: e.target.checked })}
+              />
+              <span>Исключить компенсации</span>
+            </label>
+          </>
+        )}
       </div>
 
       {tags.length > 0 && (

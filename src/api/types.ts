@@ -127,3 +127,51 @@ export interface BulkUpdateDto {
   addTagIds?: string[];
   replaceTagIds?: string[];
 }
+
+export type TimeGrouping = 'Day' | 'Week' | 'Month';
+
+export interface AnalyticsFilter {
+  dateFrom?: string;
+  dateTo?: string;
+  amountMin?: number;
+  amountMax?: number;
+  categoryId?: string;
+  type?: TransactionTypeFilter;
+  tagIds?: string[];
+  scopeId?: string;
+  excludeScopeIds?: string[];
+  excludeTransfers?: boolean;
+  excludeCompensations?: boolean;
+}
+
+export interface AnalyticsSummaryDto {
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
+}
+
+export interface CategoryStatDto {
+  category: CategoryDto;
+  total: number;
+  count: number;
+  percent: number;
+}
+
+export interface ScopeStatDto {
+  scope: ScopeDto;
+  total: number;
+  count: number;
+}
+
+export interface TagStatDto {
+  tag: TagDto;
+  total: number;
+  count: number;
+}
+
+export interface TimeStatDto {
+  period: string;
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
+}

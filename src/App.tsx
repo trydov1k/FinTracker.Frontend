@@ -3,6 +3,7 @@ import { Layout } from './components/Layout/Layout';
 import { HomePage } from './pages/HomePage/HomePage';
 import { UploadPage } from './pages/UploadPage/UploadPage';
 import { TransactionsPage } from './pages/TransactionsPage/TransactionsPage';
+import { AnalyticsPage } from './pages/AnalyticsPage/AnalyticsPage';
 import { StubPage } from './pages/StubPage/StubPage';
 
 export default function App() {
@@ -12,10 +13,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="upload" element={<UploadPage />} />
         <Route path="transactions" element={<TransactionsPage />} />
-        <Route
-          path="analytics"
-          element={<StubPage title="Аналитика" />}
-        />
+        <Route path="analytics" element={<AnalyticsPage />} />
         <Route
           path="about"
           element={<StubPage title="О нас" />}

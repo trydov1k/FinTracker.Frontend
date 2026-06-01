@@ -48,3 +48,19 @@ export function formatAmount(amount: number, currency = '₽'): string {
   });
   return `${sign}${formatted} ${currency}`;
 }
+
+export function formatMoney(amount: number, currency = '₽'): string {
+  const formatted = Math.abs(amount).toLocaleString('ru-RU', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const sign = amount < 0 ? '−' : '';
+  return `${sign}${formatted} ${currency}`;
+}
+
+export function formatPercent(value: number): string {
+  return `${value.toLocaleString('ru-RU', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })}%`;
+}
